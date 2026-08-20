@@ -1,0 +1,49 @@
+# Neovim / Vim
+*.swp
+*.swo
+*.swn
+*~
+/doc/tags
+/tags
+
+# Lua tooling
+*.luac
+luac.out
+/.luarocks/
+/lua_modules/
+
+# Tests and generated reports
+/.tests/
+/coverage/
+/luacov.stats.out
+/luacov.report.out
+*.log
+
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+.envrc
+/.venv/
+/venv/
+
+# Python artifacts (mpremote tooling/scripts)
+__pycache__/
+*.py[cod]
+
+# Editors
+/.idea/
+/.vscode/
+
+# OS metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Local build and temporary output
+/.cache/
+/build/
+/dist/
+/tmp/
+/.tmp/

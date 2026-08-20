@@ -1,0 +1,192 @@
+*mpwrap.txt* *mpwrap*    mpwrap.nvim user guide
+
+Author: andy
+License: MIT
+
+===============================================================================
+CONTENTS                                            *mpwrap-contents*
+
+1. Introduction.....................................|mpwrap-introduction|
+2. Requirements.....................................|mpwrap-requirements|
+3. Setup............................................|mpwrap-setup|
+4. Commands.........................................|mpwrap-commands|
+5. Panel workflow...................................|mpwrap-panel|
+6. Configuration....................................|mpwrap-configuration|
+7. WhichKey.........................................|mpwrap-which-key|
+
+===============================================================================
+1. Introduction                                     *mpwrap-introduction*
+
+mpwrap.nvim is a Neovim wrapper around the official `mpremote` CLI for
+MicroPython devices.
+
+mpwrap.nvim is an independent project. It is not affiliated with, endorsed
+by, or maintained by the MicroPython project. `mpremote` is developed by the
+MicroPython team; this plugin only drives it as an external CLI.
+
+Panel layout has three stacked panes:
+  - menu (top)
+  - filesystem (middle)
+  - REPL (bottom)
+
+===============================================================================
+2. Requirements                                     *mpwrap-requirements*
+
+- Neovim >= 0.8.0
+- `mpremote` installed and on PATH
+- Serial port access for your user
+- macOS/Linux tested; Windows untested
+
+Installing mpremote (pick whichever suits your Python tooling): >
+
+  pipx install mpremote
+  pip install --user mpremote
+  uv tool install mpremote
+<
+Verify the CLI works on its own before using the plugin. With the board
+plugged in: >
+
+  mpremote --version
+  mpremote connect list
+<
+If `mpremote connect list` does not show the board, fix that first - no
+plugin setting can work around a CLI that cannot reach the device.
+
+On Linux, serial access usually needs group membership: >
+
+  sudo usermod -a -G dialout $USER
+<
+(`uucp` instead of `dialout` on Arch.) Log out and back in afterwards.
+
+If Neovim cannot find `mpremote` even though your shell can (common with
+pyenv/venv setups), set `mpremote_cmd` to the absolute path.
+
+Run |:checkhealth| `mpwrap` to re-check all of the above from inside Neovim.
+
+===============================================================================
+3. Setup                                            *mpwrap-setup*
+
+>
+  require("mpwrap").setup({
+    device = "auto",
+    panel_width = 50,
+    repl_height_ratio = 0.4,
+  })
+<
+
+Setup is idempotent. Repeated `setup()` calls recreate user commands safely.
+
+Invalid config raises a clear Lua error and is not merged.
+
+===============================================================================
+4. Commands                                         *mpwrap-commands*
+
+                                                        *:MpWrapToggle*
+:MpWrapToggle      Toggle panel
+
+                                                        *:MpWrapOpen*
+:MpWrapOpen        Open panel
+
+                                                        *:MpWrapClose*
+:MpWrapClose       Close panel
+
+                                                        *:MpWrapRepl*
+:MpWrapRepl        Start/focus REPL pane
+
+                                                        *:MpWrapReplStop*
+:MpWrapReplStop    Stop REPL and free serial port
+
+                                                        *:MpWrapFs*
+:MpWrapFs          Focus filesystem pane
+
+                                                        *:MpWrapUpload*
+:MpWrapUpload [path]
+                    Alias for :MpWrapSyncBuffer
+
+                                                        *:MpWrapSyncBuffer*
+:MpWrapSyncBuffer [path]
+                    Sync current buffer contents (includes unsaved edits)
+
+                                                        *:MpWrapSyncDir*
+:MpWrapSyncDir [local_dir]
+                    Exact-mirror sync local_dir (or cwd) to remote root (:)
+                    WARNING: remote-only files/dirs are deleted after
+                    confirmation
+                    Reads directory files from disk; save modified buffers
+                    first
+
+                                                        *:MpWrapDownload*
+:MpWrapDownload {remote} [local]
+                    Download file; prompts before overwrite
+
+                                                        *:MpWrapVersion*
+:MpWrapVersion     Show mpremote version
+
+                                                        *:MpWrapDevice*
+:MpWrapDevice      Pick a device port
+
+===============================================================================
+5. Panel workflow                                   *mpwrap-panel*
+
+- Opening a remote file uses a cache path under stdpath("cache") with hashed
+  names to avoid collisions.
+- If cached file buffer is already loaded and modified, panel reuses/focuses it
+  instead of overwriting local edits.
+- Filesystem operations and REPL share a serial-port lock. If one owns the port,
+  the other fails fast with a useful error.
+
+===============================================================================
+6. Configuration                                    *mpwrap-configuration*
+
+device policy:
+  "auto"   prompt when needed; can rescan
+  "pick"   always prompt on open
+  "/dev/..." or "COMx" explicit port
+
+Ignore semantics:
+  - `sync_ignore` replaces built-in defaults when set in setup().
+  - `sync_ignore_extra` extends whichever base is active.
+  - Ignored local paths are outside the mirror; matching device-only paths may
+    therefore be deleted as remote-only entries after confirmation.
+  - entries must be dense list items of non-empty strings.
+
+Available keys under `keys`:
+  refresh, upload, sync_dir, download, move, delete, clear_all, restart_device,
+  action_menu, start_repl, stop_repl, open, close_panel, mkdir, parent
+
+Validation rules:
+  - mpremote_cmd non-empty string
+  - device non-empty string
+  - panel_width integer >= 20
+  - 0 < repl_height_ratio < 1
+  - key mappings non-empty and collision-free
+
+==============================================================================
+7. WhichKey                                         *mpwrap-which-key*
+
+MPWrap does not require WhichKey or reserve a global leader prefix. With
+which-key.nvim v3, register a group heading in your WhichKey spec: >
+
+  vim.list_extend(opts.spec, {
+    { "<leader>m", group = "MPWrap" },
+  })
+<
+
+Define the actual rows as normal mappings. WhichKey reads each `desc`: >
+
+  vim.keymap.set("n", "<leader>mp", "<cmd>MpWrapToggle<cr>",
+    { desc = "Toggle panel" })
+  vim.keymap.set("n", "<leader>mb", "<cmd>MpWrapSyncBuffer<cr>",
+    { desc = "Sync buffer" })
+  vim.keymap.set("n", "<leader>md", "<cmd>MpWrapSyncDir<cr>",
+    { desc = "Sync directory" })
+  vim.keymap.set("n", "<leader>mr", "<cmd>MpWrapRepl<cr>",
+    { desc = "Open REPL" })
+<
+
+The group declaration supplies the `MPWrap` heading. The mappings supply the
+menu entries shown after pressing `<leader>m`.
+  - sync_ignore/sync_ignore_extra entries are non-empty strings
+
+===============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:

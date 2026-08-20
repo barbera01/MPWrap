@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Neovim ${{ matrix.neovim.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim:
+          - version: v0.8.3
+            archive: nvim-linux64.tar.gz
+            directory: nvim-linux64
+          - version: stable
+            archive: nvim-linux-x86_64.tar.gz
+            directory: nvim-linux-x86_64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes luarocks unzip
+
+      - name: Install Neovim
+        env:
+          NVIM_VERSION: ${{ matrix.neovim.version }}
+          NVIM_ARCHIVE: ${{ matrix.neovim.archive }}
+          NVIM_DIRECTORY: ${{ matrix.neovim.directory }}
+        run: |
+          curl --fail --location --retry 3 \
+            --output /tmp/nvim.tar.gz \
+            "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/${NVIM_ARCHIVE}"
+          sudo tar --directory /opt --extract --gzip --file /tmp/nvim.tar.gz
+          sudo ln --symbolic --force "/opt/${NVIM_DIRECTORY}/bin/nvim" /usr/local/bin/nvim
+          nvim --version
+
+      - name: Install StyLua 0.20.0
+        run: |
+          curl --fail --location --retry 3 \
+            --output /tmp/stylua.zip \
+            "https://github.com/JohnnyMorganz/StyLua/releases/download/v0.20.0/stylua-linux-x86_64.zip"
+          sudo unzip -o /tmp/stylua.zip -d /usr/local/bin
+          stylua --version
+
+      - name: Install Luacheck 1.2.0
+        run: |
+          sudo luarocks install luacheck 1.2.0-1
+          luacheck --version
+
+      - name: Run checks
+        run: make check
