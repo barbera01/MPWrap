@@ -77,6 +77,9 @@ local fs_divider_before = divider_width(panel.state.fs_bufnr)
 local menu_divider_before = divider_width(panel.state.menu_bufnr)
 
 vim.o.columns = original_columns + 70
+-- Headless Neovim 0.8 does not emit VimResized automatically when 'columns'
+-- is assigned, so trigger the documented event explicitly.
+vim.cmd("doautocmd VimResized")
 vim.wait(300, function()
   return false
 end, 50)
@@ -85,6 +88,7 @@ assert_true(divider_width(panel.state.fs_bufnr) > fs_divider_before, "fs divider
 assert_true(divider_width(panel.state.menu_bufnr) > menu_divider_before, "menu divider should widen after VimResized")
 
 vim.o.columns = original_columns
+vim.cmd("doautocmd VimResized")
 vim.wait(300, function()
   return false
 end, 50)
