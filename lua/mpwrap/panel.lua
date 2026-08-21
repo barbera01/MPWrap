@@ -244,6 +244,7 @@ local function render_filesystem()
     lines,
     string.format("  %s=open  %s=download  %s=move  %s=delete", keys.open, keys.download, keys.move, keys.delete)
   )
+  table.insert(lines, string.format("  %s=next pane  %s=previous pane", keys.next_section, keys.previous_section))
 
   vim.api.nvim_buf_set_lines(M.state.fs_bufnr, 0, -1, false, lines)
   vim.bo[M.state.fs_bufnr].modifiable = false
@@ -272,6 +273,73 @@ local function update_repl_winbar()
   vim.wo[M.state.repl_winid].winbar = string.format("%%#MpWrapTitle#  REPL —%%* %%#%s#%s%%*", hl_group, status)
 end
 
+-- Cycle only through MPWrap's three panes, never into an unrelated editor
+-- split. In a live terminal these mappings are normal-mode only, preserving
+-- plain Tab for MicroPython completion while terminal-insert mode is active.
+local function focus_relative_section(offset)
+  local windows = {}
+  for _, winid in ipairs({ M.state.menu_winid, M.state.fs_winid, M.state.repl_winid }) do
+    if winid and vim.api.nvim_win_is_valid(winid) then
+      table.insert(windows, winid)
+    end
+  end
+
+  if #windows == 0 then
+    return
+  end
+
+  local current = vim.api.nvim_get_current_win()
+  local current_index
+  for index, winid in ipairs(windows) do
+    if winid == current then
+      current_index = index
+      break
+    end
+  end
+
+  if not current_index then
+    current_index = offset > 0 and 0 or 1
+  end
+
+  local target_index = ((current_index - 1 + offset) % #windows) + 1
+  vim.api.nvim_set_current_win(windows[target_index])
+end
+
+local function focus_next_section()
+  focus_relative_section(1)
+end
+
+local function focus_previous_section()
+  focus_relative_section(-1)
+end
+
+local function setup_section_navigation_keymaps(bufnr)
+  if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+
+  local cfg = config.get()
+  if not cfg.keymaps then
+    return
+  end
+
+  vim.keymap.set("n", cfg.keys.next_section, focus_next_section, {
+    buffer = bufnr,
+    noremap = true,
+    silent = true,
+    desc = "Focus next MPWrap section",
+  })
+  vim.keymap.set("n", cfg.keys.previous_section, focus_previous_section, {
+    buffer = bufnr,
+    noremap = true,
+    silent = true,
+    desc = "Focus previous MPWrap section",
+  })
+end
+
+M.focus_next_section = focus_next_section
+M.focus_previous_section = focus_previous_section
+
 local function render_repl_placeholder()
   if not M.state.repl_winid or not vim.api.nvim_win_is_valid(M.state.repl_winid) then
     return
@@ -295,14 +363,21 @@ local function render_repl_placeholder()
     "",
     "Press R in the filesystem pane to start the REPL.",
     "Press s in the filesystem pane to stop it again.",
+    string.format(
+      "Use %s / %s to move between panel panes.",
+      config.get().keys.next_section,
+      config.get().keys.previous_section
+    ),
   })
   vim.bo[M.state.repl_bufnr].modifiable = false
 
+  setup_section_navigation_keymaps(M.state.repl_bufnr)
   update_repl_winbar()
 end
 
 local function start_repl()
   if repl.is_running() then
+    setup_section_navigation_keymaps(repl.state.bufnr)
     repl.focus()
     update_repl_winbar()
     return
@@ -330,6 +405,7 @@ local function start_repl()
     render_repl_placeholder()
     return
   end
+  setup_section_navigation_keymaps(repl.state.bufnr)
   -- termopen sets 'nowrap' once as part of entering the terminal buffer,
   -- clobbering whatever was set beforehand - so this has to happen after
   -- create(), not when the window itself was first created.
@@ -1206,6 +1282,7 @@ local function setup_menu_keymaps()
   local opts = { buffer = M.state.menu_bufnr, noremap = true, silent = true }
 
   vim.keymap.set("n", "<CR>", run_menu_selection, opts)
+  setup_section_navigation_keymaps(M.state.menu_bufnr)
   -- Direct digit keys for the mpremote section (populated by render_menu,
   -- which always runs before this). Not in cfg.keys - these are menu-only,
   -- not mirrored as fs-pane keys the way the Actions section's are.
@@ -1240,6 +1317,7 @@ local function setup_fs_keymaps()
 
   local opts = { buffer = M.state.fs_bufnr, noremap = true, silent = true }
 
+  setup_section_navigation_keymaps(M.state.fs_bufnr)
   vim.keymap.set("n", cfg.keys.refresh, refresh_fs, opts)
   vim.keymap.set("n", cfg.keys.open, open_entry, opts)
   vim.keymap.set("n", cfg.keys.upload, upload_buffer, opts)

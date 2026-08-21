@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Normal-mode `<Tab>` / `<S-Tab>` navigation cycles through all three panel panes while preserving terminal-insert Tab for MicroPython REPL completion
 - `:MpWrapSyncBuffer [remote_path]` command (with `:MpWrapUpload` compatibility alias)
 - `:MpWrapSyncDir [local_dir]` exact-mirror directory sync to remote root (`:`), with plan + destructive-delete confirmation
 - Panel action/key for directory sync (`keys.sync_dir`, default `S`) - opens a breadcrumb directory browser (`vim.ui.select`, with a "[Type a path manually]" escape hatch to `vim.ui.input`) to pick the local sync source rather than assuming Neovim's cwd, since the device code doesn't always live at the cwd root. Remembers the last directory picked per session as the next browse's starting point.

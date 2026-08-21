@@ -30,6 +30,10 @@ Three stacked windows: **Menu** (top) → **Filesystem** (middle) → **REPL** (
 
 ## Menu Pane
 
+Panel navigation: `<Tab>` next pane, `<S-Tab>` previous pane. In a live REPL,
+press `<Esc><Esc>` first; terminal-insert `<Tab>` remains available for
+MicroPython completion.
+
 Two sections, highlight + `<CR>` to run, or use the direct key:
 
 | Key | Action |

@@ -58,6 +58,23 @@ assert_true(panel.state.menu_winid and vim.api.nvim_win_is_valid(panel.state.men
 assert_true(panel.state.fs_winid and vim.api.nvim_win_is_valid(panel.state.fs_winid), "fs window should be valid")
 assert_true(panel.state.repl_winid and vim.api.nvim_win_is_valid(panel.state.repl_winid), "repl window should be valid")
 
+local function press(keys)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, false, true), "x", false)
+end
+
+-- Tab and Shift-Tab cycle only through menu -> filesystem -> REPL. These are
+-- normal-mode mappings, including in the live terminal buffer, so terminal
+-- insert-mode Tab remains available for MicroPython completion.
+assert_equal(vim.api.nvim_get_current_win(), panel.state.fs_winid, "panel should initially focus filesystem")
+press("<Tab>")
+assert_equal(vim.api.nvim_get_current_win(), panel.state.repl_winid, "Tab should focus REPL from filesystem")
+press("<Tab>")
+assert_equal(vim.api.nvim_get_current_win(), panel.state.menu_winid, "Tab should wrap from REPL to menu")
+press("<S-Tab>")
+assert_equal(vim.api.nvim_get_current_win(), panel.state.repl_winid, "Shift-Tab should focus REPL from menu")
+press("<S-Tab>")
+assert_equal(vim.api.nvim_get_current_win(), panel.state.fs_winid, "Shift-Tab should focus filesystem from REPL")
+
 -- Top-to-bottom order: menu, then fs, then repl.
 local menu_row = vim.api.nvim_win_get_position(panel.state.menu_winid)[1]
 local fs_row = vim.api.nvim_win_get_position(panel.state.fs_winid)[1]
