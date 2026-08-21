@@ -349,6 +349,12 @@ User: Press <CR> on file entry
 
 ## UI Components
 
+All three panes receive buffer-local normal-mode navigation mappings.
+`keys.next_section` and `keys.previous_section` cycle only through valid MPWrap
+windows, wrapping at either end without entering unrelated editor splits. The
+live terminal receives only normal-mode mappings, leaving terminal-insert Tab
+available for MicroPython completion.
+
 ### Menu Pane
 
 - **Buffer type**: `nofile`, non-modifiable

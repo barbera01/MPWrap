@@ -14,6 +14,8 @@ config.setup({ device = "/dev/ttyUSB0", panel_width = 72 })
 local cmd = config.get_mpremote_cmd({ "fs", "ls", ":" })
 assert_equal(table.concat(cmd, " "), "mpremote connect /dev/ttyUSB0 fs ls :", "explicit device command")
 assert_equal(config.get().panel_width, 72, "config override")
+assert_equal(config.get().keys.next_section, "<Tab>", "default next-section mapping")
+assert_equal(config.get().keys.previous_section, "<S-Tab>", "default previous-section mapping")
 
 config.setup({ device = "auto" })
 cmd = config.get_mpremote_cmd({ "repl" })

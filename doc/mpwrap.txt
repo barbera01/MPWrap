@@ -134,6 +134,9 @@ Invalid config raises a clear Lua error and is not merged.
   instead of overwriting local edits.
 - Filesystem operations and REPL share a serial-port lock. If one owns the port,
   the other fails fast with a useful error.
+- In normal mode, `<Tab>` and `<S-Tab>` cycle forward/backward through menu,
+  filesystem, and REPL panes without leaving the panel. Live REPL terminal-mode
+  Tab remains available for MicroPython completion; use `<Esc><Esc>` first.
 
 ===============================================================================
 6. Configuration                                    *mpwrap-configuration*
@@ -151,8 +154,9 @@ Ignore semantics:
   - entries must be dense list items of non-empty strings.
 
 Available keys under `keys`:
-  refresh, upload, sync_dir, download, move, delete, clear_all, restart_device,
-  action_menu, start_repl, stop_repl, open, close_panel, mkdir, parent
+  next_section, previous_section, refresh, upload, sync_dir, download, move,
+  delete, clear_all, restart_device, action_menu, start_repl, stop_repl, open,
+  close_panel, mkdir, parent
 
 Validation rules:
   - mpremote_cmd non-empty string

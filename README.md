@@ -144,7 +144,7 @@ require("mpwrap").setup()
 | `:MpWrapVersion`                   | Show mpremote version           |
 | `:MpWrapDevice`                    | Pick/select device port         |
 
-The panel is three stacked windows: the **action menu** (top), the **filesystem browser** (middle), and the **REPL** (bottom). Move between them with the usual `<C-w>` window commands.
+The panel is three stacked windows: the **action menu** (top), the **filesystem browser** (middle), and the **REPL** (bottom). In normal mode, `<Tab>` moves forward and `<S-Tab>` moves backward through those panes without leaving the panel. Standard `<C-w>` window commands still work.
 
 ### Menu Pane
 
@@ -191,7 +191,9 @@ When the filesystem pane is focused, these keybindings are available. All Menu P
 The REPL pane can start a full interactive MicroPython REPL:
 
 - `<Esc><Esc>` - Exit terminal insert mode
+- `<Tab>` / `<S-Tab>` - Move between panel panes in normal mode
 - Standard terminal keybindings apply
+- Plain `<Tab>` remains available for MicroPython completion while terminal-insert mode is active; press `<Esc><Esc>` before using pane navigation from a live REPL.
 - The REPL does not start automatically by default, so the filesystem browser can connect reliably first.
 - Press `R` in the filesystem pane or run `:MpWrapRepl` to start/focus the REPL.
 - Stop the REPL before filesystem actions because `mpremote` uses exclusive serial-port access. Press `s` in the filesystem pane, then run the file action.
@@ -231,6 +233,8 @@ require("mpwrap").setup({
 
   -- Customize keybindings
   keys = {
+    next_section = "<Tab>",
+    previous_section = "<S-Tab>",
     refresh = "r",
     upload = "u",
     sync_dir = "S",

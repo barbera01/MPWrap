@@ -2,6 +2,20 @@
 
 The panel is three stacked windows: the action menu (top), the filesystem browser (middle), and the REPL (bottom).
 
+## Panel Navigation
+
+These buffer-local mappings work in normal mode in all three panes and wrap
+without moving into unrelated editor splits:
+
+| Key | Action |
+|-----|--------|
+| `<Tab>` | Focus next pane: menu → filesystem → REPL → menu |
+| `<S-Tab>` | Focus previous pane |
+
+In a live REPL, plain `<Tab>` remains available for MicroPython completion in
+terminal-insert mode. Press `<Esc><Esc>` to return to normal mode before using
+`<Tab>` or `<S-Tab>` to leave the REPL pane.
+
 ## Menu Pane
 
 Two permanently visible sections, `mpremote` above `Actions`. Move the cursor onto a row (it highlights) and press `<CR>` to run it.

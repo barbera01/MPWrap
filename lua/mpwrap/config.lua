@@ -47,8 +47,10 @@ M.defaults = {
   },
   sync_ignore_extra = {},
 
-  -- Default keybindings (buffer-local in filesystem pane)
+  -- Default keybindings (buffer-local in panel panes)
   keys = {
+    next_section = "<Tab>",
+    previous_section = "<S-Tab>",
     refresh = "r",
     upload = "u",
     download = "D",
@@ -92,6 +94,8 @@ local KNOWN_OPTIONS = {
 }
 
 local KNOWN_KEY_BINDINGS = {
+  next_section = "string",
+  previous_section = "string",
   refresh = "string",
   upload = "string",
   download = "string",

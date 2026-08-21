@@ -251,9 +251,14 @@ All Menu Pane keys above also work here directly.
 
 ### Window Navigation
 ```
-<C-w>w        Cycle through windows (main -> menu -> fs -> repl -> main)
-<C-w>j/<C-w>k Move down/up between the panel's stacked windows
+<Tab>         Next panel pane (normal mode, wraps within panel)
+<S-Tab>       Previous panel pane (normal mode, wraps within panel)
+<C-w>w        Cycle through all windows, including the main editor
+<C-w>j/<C-w>k Move down/up between stacked windows
 ```
+
+In the live REPL, terminal-insert `<Tab>` remains available for MicroPython
+completion. Press `<Esc><Esc>` before using panel navigation there.
 
 ## Troubleshooting
 
